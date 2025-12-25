@@ -22,15 +22,30 @@
         <!-- Warning Banner -->
         <div class="alert warning">
             <i class="fas fa-exclamation-triangle"></i>
-            <strong>Warning:</strong> This tool generates <strong>powerful, multi-functional</strong> card data for <strong>carding process use only</strong>.<br>
+            <strong>Warning:</strong> This tool generates <strong>powerful, multi-functional</strong> card data for <strong>educational use only</strong>.<br>
             Any misuse is illegal and punishable by law.
         </div>
 
         <!-- Generator Form -->
         <form id="generatorForm" class="form">
             <div class="form-group">
+                <label for="binMode">BIN Input Mode</label>
+                <select id="binMode" class="form-select">
+                    <option value="single">Single BIN (One at a time)</option>
+                    <option value="multiple">Multiple BINs (One per line)</option>
+                </select>
+            </div>
+
+            <!-- Single BIN Input -->
+            <div id="singleBinGroup" class="form-group">
                 <label for="bin">BIN (6–15 digits)</label>
                 <input type="text" id="bin" value="457123" minlength="6" maxlength="15" required />
+            </div>
+
+            <!-- Multiple BINs Input -->
+            <div id="multipleBinGroup" class="form-group" style="display:none;">
+                <label for="bins">Enter BINs (One per line)</label>
+                <textarea id="bins" rows="6" placeholder="457123&#10;512345&#10;411111" class="form-textarea"></textarea>
             </div>
 
             <div class="form-row">
@@ -44,13 +59,14 @@
                 </div>
             </div>
 
+            <!-- Fixed CVV and Count -->
             <div class="form-row">
                 <div class="form-group">
                     <label for="cvv">Fixed CVV (Optional)</label>
                     <input type="number" id="cvv" min="100" max="999" placeholder="e.g. 123" />
                 </div>
                 <div class="form-group">
-                    <label for="count">Count (1–50)</label>
+                    <label for="count">Cards per BIN (1–50)</label>
                     <input type="number" id="count" value="10" min="1" max="50" />
                 </div>
             </div>
@@ -65,7 +81,7 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>© 2025 MyID All Hacking Methods </p>
+            <p>© 2025 MyID All Hacking Methods</p>
         </footer>
     </div>
 
