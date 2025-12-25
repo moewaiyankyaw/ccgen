@@ -1,15 +1,14 @@
-// script.js
-// Luhn Algorithm Validator - Returns true if the number passes Luhn check
+
+// script.js - M.H.M Pro V1.1.0 (Preserve Original UI)
 function luhnValidate(number) {
     const digits = number.toString().split('').reverse().map(d => parseInt(d));
     let sum = 0;
     for (let i = 0; i < digits.length; i++) {
         let digit = digits[i];
-        // Double every second digit from the right (i = 1, 3, 5, ...)
         if (i % 2 === 1) {
             digit *= 2;
             if (digit > 9) {
-                digit -= 9; // Equivalent to summing digits (e.g., 16 → 1+6=7)
+                digit -= 9;
             }
         }
         sum += digit;
@@ -17,111 +16,172 @@ function luhnValidate(number) {
     return sum % 10 === 0;
 }
 
-// Generate a valid test card number with correct Luhn check digit
 function generateTestCard(bin, length = 16) {
     let num = bin;
-    // Generate random digits until we have (length - 1) digits
     while (num.length < length - 1) {
         num += Math.floor(Math.random() * 10);
     }
 
-    // Try each digit 0–9 as the last digit
     for (let d = 0; d <= 9; d++) {
         const candidate = num + d;
         if (luhnValidate(candidate)) {
             return candidate;
         }
     }
-
-    // Fallback (should never reach here)
     return num + '0';
 }
 
-// Generate future expiration date (6 months from now)
 function generateFutureDate() {
     const now = new Date();
     now.setMonth(now.getMonth() + 6);
     return {
         month: String(now.getMonth() + 1).padStart(2, '0'),
-        year: String(now.getFullYear()).slice(-2)
+        year: String(now.getFullYear())
     };
 }
 
-// Generate random CVV (3-digit)
 function generateCVV() {
     return Math.floor(Math.random() * 900) + 100;
 }
 
-// Format card output
-function formatCard(cc, mm, yy, cvv) {
-    return `${cc}|${mm}|${yy}|${cvv}`;
+function formatCard(cc, mm, yyyy, cvv) {
+    return `${cc}|${mm}|${yyyy}|${cvv}`;
 }
 
-// Handle form submission
-document.getElementById('generatorForm').addEventListener('submit', function(e) {
+// Toggle BIN input mode
+document.getElementById('binMode').addEventListener('change', function () {
+    const singleGroup = document.getElementById('singleBinGroup');
+    const multipleGroup = document.getElementById('multipleBinGroup');
+    if (this.value === 'multiple') {
+        singleGroup.style.display = 'none';
+        multipleGroup.style.display = 'block';
+    } else {
+        singleGroup.style.display = 'block';
+        multipleGroup.style.display = 'none';
+    }
+});
+
+// Form submission — only generate on "Generate" button click
+document.getElementById('generatorForm').addEventListener('submit', function (e) {
     e.preventDefault();
     const cardList = document.getElementById('cardList');
     cardList.innerHTML = ''; // Clear previous results
 
-    const bin = document.getElementById('bin').value.trim();
-    const expMonth = document.getElementById('exp_month').value;
-    const expYear = document.getElementById('exp_year').value;
+    const binMode = document.getElementById('binMode').value;
+    let bins = [];
+
+    if (binMode === 'single') {
+        const bin = document.getElementById('bin').value.trim();
+        if (!/^\d{6,15}$/.test(bin)) {
+            alert("❌ BIN must be between 6 and 15 digits.");
+            return;
+        }
+        bins = [bin];
+    } else {
+        const textarea = document.getElementById('bins').value.trim();
+        if (!textarea) {
+            alert("❌ Please enter at least one BIN.");
+            return;
+        }
+        bins = textarea.split('\n')
+                       .map(line => line.trim())
+                       .filter(line => line.length >= 6 && /^\d+$/.test(line));
+        if (bins.length === 0) {
+            alert("❌ No valid BINs found.");
+            return;
+        }
+    }
+
+    // Get user inputs
+    const expMonth = document.getElementById('exp_month').value.trim();
+    const expYear = document.getElementById('exp_year').value.trim();
     const fixedCVVInput = document.getElementById('cvv').value;
+    const countInput = document.getElementById('count').value;
+
     const fixedCVV = fixedCVVInput ? parseInt(fixedCVVInput, 10) : null;
-    const count = parseInt(document.getElementById('count').value) || 10;
+    const count = countInput ? parseInt(countInput, 10) : 1;
 
-    // Validation
-    if (!/^\d{6,15}$/.test(bin)) {
-        alert("❌ BIN must be between 6 and 15 digits.");
-        return;
-    }
     if (count < 1 || count > 50) {
-        alert("❌ Please generate between 1 and 50 cards.");
+        alert("❌ Number of cards must be between 1 and 50.");
         return;
     }
 
-    // Set expiration date
+    // Handle expiration date
     let month, year;
     if (expMonth && expYear && !isNaN(expMonth) && !isNaN(expYear)) {
         month = expMonth.padStart(2, '0');
-        year = expYear.slice(-2); // Ensure 2-digit year
+        year = '20' + expYear.toString().padStart(2, '0');
     } else {
         const date = generateFutureDate();
         month = date.month;
         year = date.year;
     }
 
+    const allCards = [];
+
     // Generate cards
-    for (let i = 0; i < count; i++) {
-        const cardNumber = generateTestCard(bin, 16);
-        const cvv = fixedCVV || generateCVV();
-        const cardText = formatCard(cardNumber, month, year, cvv);
+    bins.forEach(bin => {
+        for (let i = 0; i < count; i++) {
+            const cardNumber = generateTestCard(bin, 16);
+            const cvv = fixedCVV || generateCVV();
+            const cardText = formatCard(cardNumber, month, year, cvv);
+            allCards.push(cardText);
 
-        const cardElement = document.createElement('div');
-        cardElement.className = 'card-item';
-        cardElement.innerHTML = `
-            <span class="card-text">${cardText}</span>
-            <button class="copy-btn"><i class="fas fa-copy"></i> Copy</button>
+            // Create card item
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card-item';
+            cardElement.innerHTML = `
+                <span class="card-text">${cardText}</span>
+                <button class="copy-btn"><i class="fas fa-copy"></i> Copy</button>
+            `;
+
+            // Copy single card
+            cardElement.querySelector('.copy-btn').addEventListener('click', function () {
+                navigator.clipboard.writeText(cardText).then(() => {
+                    const icon = this.querySelector('.fa-copy');
+                    icon.classList.remove('fa-copy');
+                    icon.classList.add('fa-check');
+                    this.textContent = 'Copied!';
+                    setTimeout(() => {
+                        icon.classList.remove('fa-check');
+                        icon.classList.add('fa-copy');
+                        this.textContent = 'Copy';
+                    }, 2000);
+                }).catch(err => {
+                    alert('📋 Copy failed: ' + err);
+                });
+            });
+
+            cardList.appendChild(cardElement);
+        }
+    });
+
+    // Add "Copy All" button
+    if (allCards.length > 0) {
+        const copyAllBtn = document.createElement('div');
+        copyAllBtn.className = 'card-item';
+        copyAllBtn.style.marginTop = '15px';
+        copyAllBtn.style.fontWeight = 'bold';
+        copyAllBtn.innerHTML = `
+            <span class="card-text">Total: ${allCards.length} cards</span>
+            <button id="copyAllBtn" class="copy-btn"><i class="fas fa-copy"></i> Copy All</button>
         `;
+        cardList.appendChild(copyAllBtn);
 
-        // Copy to clipboard
-        cardElement.querySelector('.copy-btn').addEventListener('click', function() {
-            navigator.clipboard.writeText(cardText).then(() => {
+        document.getElementById('copyAllBtn').addEventListener('click', function () {
+            navigator.clipboard.writeText(allCards.join('\n')).then(() => {
                 const icon = this.querySelector('.fa-copy');
                 icon.classList.remove('fa-copy');
                 icon.classList.add('fa-check');
-                this.textContent = 'Copied!';
-
+                this.textContent = 'All Copied!';
                 setTimeout(() => {
                     icon.classList.remove('fa-check');
                     icon.classList.add('fa-copy');
-                    this.textContent = 'Copy';
+                    this.textContent = 'Copy All';
                 }, 2000);
             }).catch(err => {
                 alert('📋 Copy failed: ' + err);
             });
         });
-
-        cardList.appendChild(cardElement);
     }
 });
