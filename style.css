@@ -1,3 +1,4 @@
+
 /* style.css */
 * {
     margin: 0;
@@ -91,7 +92,9 @@ body {
     flex-wrap: wrap;
 }
 
-.form input {
+.form input,
+.form-select,
+.form-textarea {
     width: 100%;
     padding: 12px;
     border: 1px solid #ccc;
@@ -100,9 +103,21 @@ body {
     transition: border 0.3s ease;
 }
 
-.form input:focus {
+.form input:focus,
+.form-select:focus,
+.form-textarea:focus {
     border-color: #3498db;
     outline: none;
+}
+
+.form-select {
+    background: white;
+    cursor: pointer;
+}
+
+.form-textarea {
+    font-family: monospace;
+    resize: vertical;
 }
 
 .btn-generate {
@@ -137,7 +152,6 @@ body {
     border-radius: 6px;
     font-family: 'Courier New', monospace;
     font-size: 15px;
-    cursor: pointer;
     transition: all 0.2s ease;
     margin-bottom: 8px;
     display: flex;
@@ -148,12 +162,6 @@ body {
 .card-item:hover {
     background: #e3f2fd;
     border-color: #2196f3;
-}
-
-.card-item.copied {
-    background: #d4edda;
-    border-color: #c3e6cb;
-    color: #155724;
 }
 
 .card-item .copy-btn {
